@@ -19,14 +19,19 @@ function optimization
 %     disp(global_min);
     
     x_k = zeros(n, 1);
-    for k = 1 : 50000
+    f_vals = [];
+    iter = 10000;
+    for k = 1 : iter
         x_k = steepestDescent(x_k, M, b, L);
 %         disp('f:');
-%         f = (1/2) * dot(M*x_k, x_k) - dot(b, x_k);
+        f = (1/2) * dot(M*x_k, x_k) - dot(b, x_k);
+        f_vals = [f_vals, f - f_optimal];
 %         disp(f);
 %         disp('x:');
 %         disp(x_k);
     end
+    
+    plot(1:1:iter, f_vals);
 end
 
 function [M, b] = initializeMatrix(n)
