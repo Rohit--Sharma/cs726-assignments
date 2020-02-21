@@ -6,11 +6,11 @@ function optimization
     L = evals(n);       % We can also prove L = 4 in this case
     
     x_optimal = pinv(M) * b;
-    disp('Global min:');
+%     disp('Global min:');
     f_optimal = (1/2) * dot(M*x_optimal, x_optimal) - dot(b, x_optimal);
 %     disp(f_optimal);
     
-    iter = 800;
+    iter = 850;
     
     steep_desc_x_k = zeros(n, 1);
     steep_desc_opt_gap = [];
@@ -44,7 +44,7 @@ function optimization
         lagged_line_search_opt_gap = [lagged_line_search_opt_gap, lagged_line_search_f - f_optimal];
         
         [nest_x_k, y_k, v_k, a_k, A_k] = nesterovsMethod(nest_x_k, y_k, v_k, M, b, L, a_k, A_k);
-        nest_f = evaluate_func(M, b, nest_x_k);
+        nest_f = evaluate_func(M, b, y_k);
         nest_opt_gap = [nest_opt_gap, nest_f - f_optimal];
     end
     
