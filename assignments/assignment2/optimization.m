@@ -21,6 +21,7 @@ function optimization
     lagged_line_search_x_k = zeros(n, 1);
     step_k = 1 / L;     % initialization of prev step size for lagged line search
     lagged_line_search_opt_gap = [];
+    lagged_line_search_lowest_f = [];
     
     % Nesterov's Acceleration initializations:
     nest_x_k = zeros(n, 1);
@@ -29,6 +30,7 @@ function optimization
     v_k = nest_x_k - gradient(M, b, nest_x_k) / L;
     y_k = v_k;
     nest_opt_gap = [];
+    nest_lowest_f = [];
     
     for k = 1 : iter
         steep_desc_x_k = steepestDescent(steep_desc_x_k, M, b, L);
@@ -42,10 +44,20 @@ function optimization
         [lagged_line_search_x_k, step_k] = laggedSteepestDescent(lagged_line_search_x_k, M, b, step_k);
         lagged_line_search_f = evaluate_func(M, b, lagged_line_search_x_k);
         lagged_line_search_opt_gap = [lagged_line_search_opt_gap, lagged_line_search_f - f_optimal];
+        if isempty(lagged_line_search_lowest_f)
+            lagged_line_search_lowest_f = lagged_line_search_f;
+        else
+            lagged_line_search_lowest_f = [lagged_line_search_lowest_f, min(lagged_line_search_lowest_f(end), lagged_line_search_f)];
+        end
         
         [nest_x_k, y_k, v_k, a_k, A_k] = nesterovsMethod(nest_x_k, y_k, v_k, M, b, L, a_k, A_k);
         nest_f = evaluate_func(M, b, y_k);
         nest_opt_gap = [nest_opt_gap, nest_f - f_optimal];
+        if isempty(nest_lowest_f)
+            nest_lowest_f = nest_f;
+        else
+            nest_lowest_f = [nest_lowest_f, min(nest_lowest_f(end), nest_f)];
+        end
     end
     
     figure
@@ -54,16 +66,31 @@ function optimization
     hold on
     plot(1:1:iter, line_search_opt_gap)
     hold on
-    plot(1:1:iter, lagged_line_search_opt_gap)
-    hold on
     plot(1:1:iter, nest_opt_gap)
-    legend('Steepest Descent - const step size', ...
-        'Steepest Descent - exact line search', ...
-        'Lagged Steepest Descent', ...
-        'Nesterovs Acceleration')
+    legend('SD:constant', 'SD:exact', 'Nesterov')
     title('Analysis of Optimization algorithms')
     xlabel('Num iterations')
-    ylabel('Optimality gap: f(x) - f(x*)')
+    ylabel('Optimality gap: f(x) - f(x*)');
+    
+    figure
+    plot(1:1:iter, nest_opt_gap)
+    set(gca, 'YScale', 'log')
+    hold on
+    plot(1:1:iter, lagged_line_search_opt_gap)
+    legend('Nesterov', 'SD:lagged')
+    title('Analysis of Optimization algorithms')
+    xlabel('Num iterations')
+    ylabel('Optimality gap: f(x) - f(x*)');
+    
+    figure
+    plot(1:1:iter, nest_lowest_f)
+    set(gca, 'YScale', 'log')
+    hold on
+    plot(1:1:iter, lagged_line_search_lowest_f)
+    legend('Nesterov', 'SD:lagged')
+    title('Analysis of Optimization algorithms')
+    xlabel('Num iterations')
+    ylabel('Lowest f value attained');
 end
 
 function [M, b] = initializeMatrix(n)
