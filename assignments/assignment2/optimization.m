@@ -1,4 +1,13 @@
+% CS726 - Nonlinear Optimization
+%   HW2
+%   Author: Rohit Sharma (rohit.sharma@wisc.edu)
+
 function optimization(n, iter)
+% OPTIMIZATION: Runs Steepest Descent variants (const step size,
+%   exact line search, lagged step size) and Nesterov's method  
+%   on a quadratic function defined by M of dimension nxn and b 
+%   of dimension n for `iter' iterations.
+
     [M, b] = initializeMatrix(n);
     
     % Get L, f(x*)

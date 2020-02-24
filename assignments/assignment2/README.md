@@ -12,6 +12,12 @@ optimization(n, iter)
 
 where the dimension, `n = 200` and `iter = 850`.
 
+For more information, type the following:
+
+```MatLab
+help optimization
+```
+
 ### Results
 
 When run with the above arguments, the code produces the three plots below:
