@@ -11,8 +11,9 @@ function optimization(n, m, iter)
     [M, b] = initializeMatrix(n);
     
     % Get L, f(x*)
-    evals = sort(eig(M));
-    L = evals(n);       % We can also prove L = 4 in this case
+%     evals = sort(eig(M));
+%     L = evals(n);       % We can also prove L = 4 in this case
+    L = 4 + m;
     f_optimal = minimize(M, b, m);
     
     % Nesterov's Acceleration for smooth initializations:
@@ -76,12 +77,14 @@ function optimization(n, m, iter)
         hbm_opt_gap = [hbm_opt_gap, hbm_f - f_optimal];
     end
     
+    disp(cgm_opt_gap)
+    
     % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
     plot(1:1:iter, nesterov_opt_gap)
     set(gca, 'YScale', 'log')
-%     hold on
-%     plot(1:1:iter, strong_nesterov_opt_gap)
+    hold on
+    plot(1:1:iter, strong_nesterov_opt_gap)
     hold on
     plot(1:1:iter, cgm_opt_gap)
     hold on
@@ -94,8 +97,8 @@ function optimization(n, m, iter)
     figure
     plot(1:1:iter, nestmono_opt_gap)
     set(gca, 'YScale', 'log')
-%     hold on
-%     plot(1:1:iter, strong_nesterov_opt_gap)
+    hold on
+    plot(1:1:iter, strong_nesterov_opt_gap)
     hold on
     plot(1:1:iter, cgm_opt_gap)
     hold on
@@ -153,7 +156,9 @@ end
 
 function [y_k, v_k, A_k] = nesterovForSmoothStronglyConvexRechtMethod(y_k_prev, v_k_prev, M, b, L, m, A_k_prev)
     m0 = L - m;
-    a_k = ((m0 + 2*m*A_k_prev) + sqrt((m0 + 2*m*A_k_prev)^2 + 4*m0*(m0*A_k_prev + m*A_k_prev^2))) / 2*m0;
+    c1 = m0 + 2*m*A_k_prev;
+    c2 = 4*m0*A_k_prev*(m0 + m*A_k_prev);
+    a_k = (c1 + sqrt(c1^2 + c2)) / (2*m0);
     A_k = A_k_prev + a_k;
     
     a_k_ = a_k * (m0 + m*A_k_prev) / (m0 + m*A_k);
@@ -165,10 +170,11 @@ function [y_k, v_k, A_k] = nesterovForSmoothStronglyConvexRechtMethod(y_k_prev, 
 end
 
 function [x_k, p_k] = conjugateGradientMethod(M, b, m, x_k_prev, p_k_prev)
+    n = size(M, 1);
     gradient_x_k_prev = gradient(M, b, m, x_k_prev);
     
     % Exact line search for h_k_prev
-    h_k_prev = - dot(gradient_x_k_prev, -p_k_prev) / dot(-M*p_k_prev, -p_k_prev);
+    h_k_prev = dot(gradient_x_k_prev, p_k_prev) / dot((M + m*eye(n))*p_k_prev, p_k_prev);
     x_k = x_k_prev - h_k_prev * p_k_prev;
     
     beta_k_prev = dot(gradient_x_k_prev, gradient_x_k_prev) / dot(gradient(M, b, m, x_k) - gradient_x_k_prev, p_k_prev);
