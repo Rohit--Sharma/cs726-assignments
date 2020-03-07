@@ -1,5 +1,5 @@
 % CS726 - Nonlinear Optimization
-%   HW2
+%   HW3
 %   Author: Rohit Sharma (rohit.sharma@wisc.edu)
 
 function optimization(n, iter)
@@ -112,33 +112,31 @@ function [M, b] = initializeMatrix(n)
     M = diag(2*[ones(k, 1); zeros(n-k, 1)], 0)...
         + diag([-ones(k-1, 1); zeros(n-k, 1)], -1)...
         + diag([-ones(k-1, 1); zeros(n-k, 1)], 1);
-    M(n,1) = - 1;
-    M(1,n) = -1;
-    b = -1/n * ones(n, 1);
+    b = zeros(n, 1);
     b(1) = b(1) + 1;
 end
 
-% Run one step of steepest descent with constant step size = 1/L
-function x_k = steepestDescent(x_k_prev, M, b, L)
-    x_k = x_k_prev - (1 / L) * gradient(M, b, x_k_prev);
-end
-
-% Run one step of steepest descent with exact line search
-function x_k = steepestDescentLineSearch(x_k_prev, M, b)
-    desc_dirxn = -gradient(M, b, x_k_prev);
-    % Compute the step size using exact line search
-    step_size = dot(desc_dirxn, desc_dirxn) / dot(M*desc_dirxn, desc_dirxn);
-    x_k = x_k_prev + step_size * desc_dirxn;
-end
-
-% Run one step of steepest descent with a lagged step size
-function [x_k, step_k] = laggedSteepestDescent(x_k_prev, M, b, step_k_prev)
-    desc_dirxn = -gradient(M, b, x_k_prev);
-    % Compute new step size
-    step_k = dot(desc_dirxn, desc_dirxn) / dot(M*desc_dirxn, desc_dirxn);
-    % Use old step size to update x as per steepest descent
-    x_k = x_k_prev + step_k_prev * desc_dirxn;
-end
+% % Run one step of steepest descent with constant step size = 1/L
+% function x_k = steepestDescent(x_k_prev, M, b, L)
+%     x_k = x_k_prev - (1 / L) * gradient(M, b, x_k_prev);
+% end
+% 
+% % Run one step of steepest descent with exact line search
+% function x_k = steepestDescentLineSearch(x_k_prev, M, b)
+%     desc_dirxn = -gradient(M, b, x_k_prev);
+%     % Compute the step size using exact line search
+%     step_size = dot(desc_dirxn, desc_dirxn) / dot(M*desc_dirxn, desc_dirxn);
+%     x_k = x_k_prev + step_size * desc_dirxn;
+% end
+% 
+% % Run one step of steepest descent with a lagged step size
+% function [x_k, step_k] = laggedSteepestDescent(x_k_prev, M, b, step_k_prev)
+%     desc_dirxn = -gradient(M, b, x_k_prev);
+%     % Compute new step size
+%     step_k = dot(desc_dirxn, desc_dirxn) / dot(M*desc_dirxn, desc_dirxn);
+%     % Use old step size to update x as per steepest descent
+%     x_k = x_k_prev + step_k_prev * desc_dirxn;
+% end
 
 % Run one step of Nesterov's acceleration
 function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, L, A_k_prev)
@@ -151,33 +149,46 @@ function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, L, A_k_prev
     y_k = x_k - grad_x_k / L;
 end
 
-function conjugateGradientMethod()
+function nesterovForSmoothStronglyConvex()
+    % Restarting AGD for n_iter = sqrt(8L/m)
+    n_iter_nesterov = ceil(sqrt(8 * L / m));
+    
+    for k = 1 : n_iter_nesterov
+        [y_k, v_k, A_k] = nesterovsMethod(y_k, v_k, M, b, L, A_k);
+    end
+end
 
+function [x_k, p_k] = conjugateGradientMethod(M, b, x_k_prev, p_k_prev)
+    gradient_x_k_prev = gradient(M, b, x_k_prev);
+    
+    % Exact line search for h_k_prev
+    h_k_prev = - dot(gradient_x_k_prev, -p_k_prev) / dot(-M*p_k_prev, -p_k_prev);
+    x_k = x_k_prev - h_k_prev * p_k_prev;
+    
+    beta_k_prev = dot(gradient_x_k_prev, gradient_x_k_prev) / dot(gradient(M, b, x_k) - gradient_x_k_prev, p_k_prev);
+    p_k = gradient_x_k_prev - beta_k_prev * p_k_prev;
 end
 
 function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, M, b, L, m)
     alpha_1 = 4 / (sqrt(L) + sqrt(m))^2;
-    alpha_2 = (sqrt(L) - sqrt(m)) / (sqrt(L) + sqrt(m));
+    alpha_2 = (sqrt(L) - sqrt(m))^2 / (sqrt(L) + sqrt(m))^2;
     
     x_k = x_k_prev - alpha_1 * gradient(M, b, x_k_prev) + alpha_2 * (x_k_prev - x_k_prev_prev);
 end
 
-function nesterovForSmoothStronglyConvex()
-
-end
-
 % Helper method to evaluate the value of function at a given input
-function f_val = evaluate_func(M, b, x)
-    f_val = (1/2) * dot(M*x, x) - dot(b, x);
+function f_val = evaluate_func(M, b, m, x)
+    f_val = (1/2) * dot(M*x, x) - dot(b, x) + m / 2 * norm(x)^2;
 end
 
 % Helper method to evaluate the gradient of function at a given input
-function grad = gradient(M, b, x)
-    grad = M * x - b;
+function grad = gradient(M, b, m, x)
+    grad = M * x - b + m * x;
 end
 
 % Helper method to obtain the optimal value of the function (f(x*))
-function f_optimal = minimize(M, b)
-    x_optimal = pinv(M) * b;
-    f_optimal = (1/2) * dot(M*x_optimal, x_optimal) - dot(b, x_optimal);
+function f_optimal = minimize(M, b, m)
+    n = size(M, 1);
+    x_optimal = pinv(M + m * eye(n)) * b;
+    f_optimal = evaluate_func(M, b, m, x_optimal);
 end
