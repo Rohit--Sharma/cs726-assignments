@@ -77,36 +77,47 @@ function optimization(n, m, iter)
         hbm_opt_gap = [hbm_opt_gap, hbm_f - f_optimal];
     end
     
-    disp(cgm_opt_gap)
+%     disp(cgm_opt_gap);
+%     disp(hbm_opt_gap);
     
     % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
-    plot(1:1:iter, nesterov_opt_gap)
+    plot(1:1:iter, nesterov_opt_gap, 'LineWidth', 1.5)
     set(gca, 'YScale', 'log')
     hold on
-    plot(1:1:iter, strong_nesterov_opt_gap)
+    plot(1:1:iter, strong_nesterov_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, cgm_opt_gap)
+    plot(1:1:iter, cgm_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, hbm_opt_gap)
+    plot(1:1:iter, hbm_opt_gap, 'LineWidth', 1.5)
     legend('Nesterov', 'Str:Nesterov', 'CGM', 'HBM')
     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
     xlabel('Num iterations')
     ylabel('Optimality gap: f(x) - f(x*)');
     
     figure
-    plot(1:1:iter, nestmono_opt_gap)
+    plot(1:1:iter, nestmono_opt_gap, 'LineWidth', 1.5)
     set(gca, 'YScale', 'log')
     hold on
-    plot(1:1:iter, strong_nesterov_opt_gap)
+    plot(1:1:iter, strong_nesterov_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, cgm_opt_gap)
+    plot(1:1:iter, cgm_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, hbm_opt_gap)
+    plot(1:1:iter, hbm_opt_gap, 'LineWidth', 1.5)
     legend('Mono:Nesterov', 'Str:Nesterov', 'CGM', 'HBM')
     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
     xlabel('Num iterations')
     ylabel('Optimality gap: f(x) - f(x*)');
+    
+%     figure
+%     plot(1:1:iter, nesterov_opt_gap, 'LineWidth', 1.5)
+%     set(gca, 'YScale', 'log')
+%     hold on
+%     plot(1:1:iter, nestmono_opt_gap, 'LineWidth', 1.5)
+%     legend('Nesterov', 'Nesterov Mono')
+%     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
+%     xlabel('Num iterations')
+%     ylabel('Optimality gap: f(x) - f(x*)');
 end
 
 % Initialize M(nxn) and b(nx1) as required
@@ -138,10 +149,12 @@ function [y_k, v_k, A_k] = monotonicallyDecreasingNesterovsMethod(y_k_prev, v_k_
     grad_x_k = gradient(M, b, m, x_k);
     v_k = v_k_prev - (a_k / L) * grad_x_k;
     
-    if evaluate_func(M, b, m, y_k_prev - gradient(M, b, m, y_k_prev) / L) < evaluate_func(M, b, m, x_k - grad_x_k / L)
-        y_k = y_k_prev - gradient(M, b, m, y_k_prev) / L;
+    y_k_gd = y_k_prev - gradient(M, b, m, y_k_prev) / L;
+    y_k_nest = x_k - grad_x_k / L;
+    if evaluate_func(M, b, m, y_k_gd) < evaluate_func(M, b, m, y_k_nest)
+        y_k = y_k_gd;
     else
-        y_k = x_k - grad_x_k / L;
+        y_k = y_k_nest;
     end
 end
 
@@ -177,8 +190,10 @@ function [x_k, p_k] = conjugateGradientMethod(M, b, m, x_k_prev, p_k_prev)
     h_k_prev = dot(gradient_x_k_prev, p_k_prev) / dot((M + m*eye(n))*p_k_prev, p_k_prev);
     x_k = x_k_prev - h_k_prev * p_k_prev;
     
-    beta_k_prev = dot(gradient_x_k_prev, gradient_x_k_prev) / dot(gradient(M, b, m, x_k) - gradient_x_k_prev, p_k_prev);
-    p_k = gradient_x_k_prev - beta_k_prev * p_k_prev;
+    gradient_x_k = gradient(M, b, m, x_k);
+    
+    beta_k_prev = dot(gradient_x_k, gradient_x_k) / dot(gradient_x_k - gradient_x_k_prev, p_k_prev);
+    p_k = gradient_x_k - beta_k_prev * p_k_prev;
 end
 
 function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, M, b, L, m)
