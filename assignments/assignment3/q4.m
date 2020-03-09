@@ -56,9 +56,8 @@ end
 % Run one step of Nesterov's acceleration for smooth and strongly convex f
 function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_prev, L, m, A_k_prev)
     m0 = L - m;
-    c1 = m0 + 2*m*A_k_prev;
-    c2 = 4*m0*A_k_prev*(m0 + m*A_k_prev);
-    a_k = (c1 + sqrt(c1^2 + c2)) / (2*m0);
+    c1 = sqrt(m / L);
+    a_k = c1 * A_k_prev / (1 - c1);
     A_k = A_k_prev + a_k;
     
     a_k_ = a_k * (m0 + m*A_k_prev) / (m0 + m*A_k);
