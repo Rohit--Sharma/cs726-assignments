@@ -26,7 +26,7 @@ function q4(iter)
     heavyball_opt_gap = [];
     
     for k = 1 : iter
-        [y_k, v_k, A_k] = nesterovsMethod(y_k, v_k, L, A_k);
+        [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k, v_k, L, m, A_k);
         nesterov_f = evaluate_func(y_k);
         nesterov_opt_gap = [nesterov_opt_gap, nesterov_f - f_optimal];
 %         disp(y_k);
@@ -36,8 +36,10 @@ function q4(iter)
         heavyball_x_k_prev = temp;
         heavyball_f = evaluate_func(heavyball_x_k);
         heavyball_opt_gap = [heavyball_opt_gap, heavyball_f - f_optimal];
-        disp(heavyball_x_k);
+%         disp(heavyball_x_k);
     end
+    
+%     disp(nesterov_opt_gap);
     
     % Plot part (i): Optimality gap for Nesterov and Heavy Ball
     figure
@@ -51,15 +53,20 @@ function q4(iter)
     ylabel('Optimality gap: f(x) - f(x*)');
 end
 
-% Run one step of Nesterov's acceleration
-function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, L, A_k_prev)
-    a_k = (1 + sqrt(1 + 4 * A_k_prev)) / 2;
+% Run one step of Nesterov's acceleration for smooth and strongly convex f
+function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_prev, L, m, A_k_prev)
+    m0 = L - m;
+    c1 = m0 + 2*m*A_k_prev;
+    c2 = 4*m0*A_k_prev*(m0 + m*A_k_prev);
+    a_k = (c1 + sqrt(c1^2 + c2)) / (2*m0);
     A_k = A_k_prev + a_k;
     
-    x_k = (A_k_prev / A_k) * y_k_prev + (a_k / A_k) * v_k_prev;
-    grad_x_k = gradient(x_k);
-    v_k = v_k_prev - (a_k / L) * grad_x_k;
-    y_k = x_k - grad_x_k / L;
+    a_k_ = a_k * (m0 + m*A_k_prev) / (m0 + m*A_k);
+    theta_k = a_k_ / (A_k_prev + a_k_);
+    
+    x_k = (1 - theta_k)*y_k_prev + theta_k*v_k_prev;
+    v_k = (m0 + m*A_k_prev) / (m0 + m*A_k) * v_k_prev + (m*a_k) / (m0 + m*A_k) * x_k - a_k / (m0 + m*A_k) * gradient(x_k);
+    y_k = x_k - 1 / L * gradient(x_k);
 end
 
 function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, L, m)

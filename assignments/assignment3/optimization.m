@@ -60,7 +60,7 @@ function optimization(n, m, iter)
         nestmono_opt_gap = [nestmono_opt_gap, nestmono_f - f_optimal];
         
         % Run Nesterov's acceleration for strong cvx step
-        [strong_nesterov_y_k, strong_nesterov_v_k, strong_nesterov_A_k] = nesterovForSmoothStronglyConvexRechtMethod(strong_nesterov_y_k, strong_nesterov_v_k, M, b, L, m, strong_nesterov_A_k);
+        [strong_nesterov_y_k, strong_nesterov_v_k, strong_nesterov_A_k] = nesterovsMethodForSmoothStronglyConvex(strong_nesterov_y_k, strong_nesterov_v_k, M, b, L, m, strong_nesterov_A_k);
         strong_nesterov_f = evaluate_func(M, b, m, strong_nesterov_y_k);
         strong_nesterov_opt_gap = [strong_nesterov_opt_gap, strong_nesterov_f - f_optimal];
         
@@ -108,16 +108,6 @@ function optimization(n, m, iter)
     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
     xlabel('Num iterations')
     ylabel('Optimality gap: f(x) - f(x*)');
-    
-%     figure
-%     plot(1:1:iter, nesterov_opt_gap, 'LineWidth', 1.5)
-%     set(gca, 'YScale', 'log')
-%     hold on
-%     plot(1:1:iter, nestmono_opt_gap, 'LineWidth', 1.5)
-%     legend('Nesterov', 'Nesterov Mono')
-%     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
-%     xlabel('Num iterations')
-%     ylabel('Optimality gap: f(x) - f(x*)');
 end
 
 % Initialize M(nxn) and b(nx1) as required
@@ -167,7 +157,7 @@ function nesterovForSmoothStronglyConvex()
     end
 end
 
-function [y_k, v_k, A_k] = nesterovForSmoothStronglyConvexRechtMethod(y_k_prev, v_k_prev, M, b, L, m, A_k_prev)
+function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_prev, M, b, L, m, A_k_prev)
     m0 = L - m;
     c1 = m0 + 2*m*A_k_prev;
     c2 = 4*m0*A_k_prev*(m0 + m*A_k_prev);
