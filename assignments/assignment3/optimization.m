@@ -77,10 +77,7 @@ function optimization(n, m, iter)
         hbm_opt_gap = [hbm_opt_gap, hbm_f - f_optimal];
     end
     
-%     disp(cgm_opt_gap);
-%     disp(hbm_opt_gap);
-    
-    % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
+    % Plot Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
     plot(1:1:iter, nesterov_opt_gap, 'LineWidth', 1.5)
     set(gca, 'YScale', 'log')
@@ -89,7 +86,7 @@ function optimization(n, m, iter)
     hold on
     plot(1:1:iter, cgm_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, hbm_opt_gap, 'LineWidth', 1.5)
+    plot(1:1:iter, hbm_opt_gap, '--', 'LineWidth', 1.5)
     legend('Nesterov', 'Str:Nesterov', 'CGM', 'HBM')
     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
     xlabel('Num iterations')
@@ -103,7 +100,7 @@ function optimization(n, m, iter)
     hold on
     plot(1:1:iter, cgm_opt_gap, 'LineWidth', 1.5)
     hold on
-    plot(1:1:iter, hbm_opt_gap, 'LineWidth', 1.5)
+    plot(1:1:iter, hbm_opt_gap, '--', 'LineWidth', 1.5)
     legend('Mono:Nesterov', 'Str:Nesterov', 'CGM', 'HBM')
     title(strcat('Analysis of Optimization algorithms, m=', num2str(m)))
     xlabel('Num iterations')
@@ -120,7 +117,7 @@ function [M, b] = initializeMatrix(n)
     b(1) = b(1) + 1;
 end
 
-% Run one step of Nesterov's acceleration
+% Run one step of Nesterov's acceleration for smooth f
 function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, m, L, A_k_prev)
     a_k = (1 + sqrt(1 + 4 * A_k_prev)) / 2;
     A_k = A_k_prev + a_k;
@@ -131,6 +128,7 @@ function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, m, L, A_k_p
     y_k = x_k - grad_x_k / L;
 end
 
+% Run one step of Nesterov's acceleration for monotonically decreasing f
 function [y_k, v_k, A_k] = monotonicallyDecreasingNesterovsMethod(y_k_prev, v_k_prev, M, b, m, L, A_k_prev)
     a_k = (1 + sqrt(1 + 4 * A_k_prev)) / 2;
     A_k = A_k_prev + a_k;
@@ -148,15 +146,7 @@ function [y_k, v_k, A_k] = monotonicallyDecreasingNesterovsMethod(y_k_prev, v_k_
     end
 end
 
-function nesterovForSmoothStronglyConvex()
-    % Restarting AGD for n_iter = sqrt(8L/m)
-    n_iter_nesterov = ceil(sqrt(8 * L / m));
-    
-    for k = 1 : n_iter_nesterov
-        [y_k, v_k, A_k] = nesterovsMethod(y_k, v_k, M, b, L, A_k);
-    end
-end
-
+% Run one step of Nesterov's acceleration for smooth and str cvx f
 function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_prev, M, b, L, m, A_k_prev)
     m0 = L - m;
     c1 = sqrt(m / L);
@@ -171,6 +161,7 @@ function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_
     y_k = x_k - 1 / L * gradient(M, b, m, x_k);
 end
 
+% Run one step of Conjugate Gradients Method
 function [x_k, p_k] = conjugateGradientMethod(M, b, m, x_k_prev, p_k_prev)
     n = size(M, 1);
     gradient_x_k_prev = gradient(M, b, m, x_k_prev);
@@ -185,6 +176,7 @@ function [x_k, p_k] = conjugateGradientMethod(M, b, m, x_k_prev, p_k_prev)
     p_k = gradient_x_k - beta_k_prev * p_k_prev;
 end
 
+% Run one step of Heavy ball method
 function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, M, b, L, m)
     alpha_1 = 4 / (sqrt(L) + sqrt(m))^2;
     alpha_2 = (sqrt(L) - sqrt(m))^2 / (sqrt(L) + sqrt(m))^2;

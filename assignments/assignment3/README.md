@@ -1,16 +1,18 @@
-# CS726 - HW2
+# CS726 - HW3
 
 ## Comparison of Optimization Methods for an Unconstrained Quadratic Minimization
 
 ### Usage
 
+#### Q3
+
 Run the following in the current directory in a MatLab shell:
 
 ```MatLab
-optimization(n, iter)
+optimization(n, m, iter)
 ```
 
-where the dimension, `n = 200` and `iter = 850`.
+where the dimension, `n = 100`, `iter = 1000` and `m = 1, .1 or .01`.
 
 For more information, type the following:
 
@@ -18,18 +20,22 @@ For more information, type the following:
 help optimization
 ```
 
-### Results
+The script generates 2 plots for each run. For the value of `m` chosen, figure 1 corresponds to Nesterov's vs Nesterov's strongly convex vs Conjugate Gradient Method vs Heavy Ball method, and figure 2 corresponds to monotonically decreasing variant of Nesterov's vs Nesterov's strongly convex vs Conjugate Gradient Method vs Heavy Ball method.
 
-When run with the above arguments, the code produces the three plots below:
+#### Q4
 
-#### Part (i)
+Run the following in the current directory in a MatLab shell:
 
-![Part (i)](plot(i).png?raw=true "Part (i)")
+```MatLab
+q4(iter)
+```
 
-#### Part (ii)
+where `iter = 100`.
 
-![Part (ii)](plot(ii).png?raw=true "Part (ii)")
+For more information, type the following:
 
-#### Part (iii)
+```MatLab
+help q4
+```
 
-![Part (iii)](plot(iii).png?raw=true "Part (iii)")
+The script generates a plot showing the optimality gap against number of iterations for Nesterov's method for strongly convex `f` and Heavy ball method for `f` defined in Q3.

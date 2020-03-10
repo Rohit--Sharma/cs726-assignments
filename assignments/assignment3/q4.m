@@ -29,22 +29,17 @@ function q4(iter)
         [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k, v_k, L, m, A_k);
         nesterov_f = evaluate_func(y_k);
         nesterov_opt_gap = [nesterov_opt_gap, nesterov_f - f_optimal];
-%         disp(y_k);
         
         temp = heavyball_x_k;
         heavyball_x_k = heavyBallMethod(heavyball_x_k, heavyball_x_k_prev, L, m);
         heavyball_x_k_prev = temp;
         heavyball_f = evaluate_func(heavyball_x_k);
         heavyball_opt_gap = [heavyball_opt_gap, heavyball_f - f_optimal];
-%         disp(heavyball_x_k);
     end
     
-%     disp(nesterov_opt_gap);
-    
-    % Plot part (i): Optimality gap for Nesterov and Heavy Ball
+    % Plot Optimality gap for Nesterov and Heavy Ball
     figure
-    plot(1:1:iter, nesterov_opt_gap)
-%     set(gca, 'YScale', 'log')
+    plot(1:1:iter, nesterov_opt_gap, '-o');
     hold on
     plot(1:1:iter, heavyball_opt_gap)
     legend('Nesterov', 'Heavy Ball')
@@ -68,6 +63,7 @@ function [y_k, v_k, A_k] = nesterovsMethodForSmoothStronglyConvex(y_k_prev, v_k_
     y_k = x_k - 1 / L * gradient(x_k);
 end
 
+% Run one step of Heavy ball method
 function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, L, m)
     alpha_1 = 4 / (sqrt(L) + sqrt(m))^2;
     alpha_2 = (sqrt(L) - sqrt(m))^2 / (sqrt(L) + sqrt(m))^2;
@@ -75,6 +71,7 @@ function x_k = heavyBallMethod(x_k_prev, x_k_prev_prev, L, m)
     x_k = x_k_prev - alpha_1 * gradient(x_k_prev) + alpha_2 * (x_k_prev - x_k_prev_prev);
 end
 
+% Helper method to evaluate the value of function at a given input
 function f_val = evaluate_func(x)
     if x < 1
         f_val = 25/2 * x^2;
@@ -85,6 +82,7 @@ function f_val = evaluate_func(x)
     end
 end
 
+% Helper method to evaluate the gradient of function at a given input
 function grad = gradient(x)
     if x < 1
         grad = 25*x;
