@@ -9,19 +9,35 @@ function [outputArg1,outputArg2] = q2(p, n, n_iter)
     evals = sort(eig(B'*B));
     L = evals(n);
     
+    x0 = zeros(n, 1);
+    x0(1) = 1;
+    
     x_k_fw = zeros(n, 1);
     x_k_fw(1) = 1;
+    f_vals_fw = zeros(n_iter, 1);
     
     x_k_pgd = zeros(n, 1);
     x_k_pgd(1) = 1;
+    f_vals_pgd = zeros(n_iter, 1);
     
     for iter = 1 : n_iter
         x_k_fw = FrankWolfeMethod(x_k_fw, B, b, iter - 1);
-        f_val_fw = evaluateFunction(B, b, x_k_fw);
+        f_vals_fw(iter) = evaluateFunction(B, b, x_k_fw) / evaluateFunction(B, b, x0);
         
         x_k_pgd = ProjectedGradientDescent(B, b, L, x_k_pgd);
-        f_val_pgd = evaluateFunction(B, b, x_k_pgd);
+        f_vals_pgd(iter) = evaluateFunction(B, b, x_k_pgd) / evaluateFunction(B, b, x0);
     end
+    
+    % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
+    figure
+    plot(1:1:n_iter, f_vals_fw)
+    set(gca, 'YScale', 'log')
+    hold on
+    plot(1:1:n_iter, f_vals_pgd)
+    legend('Frank Wolfe Method', 'Projected Gradient Descent')
+    title('Analysis of Optimization algorithms')
+    xlabel('Num iterations')
+    ylabel('f(x_k) / f(x_0)');
 end
 
 function x_k = FrankWolfeMethod(x_k_prev, B, b, k_prev)

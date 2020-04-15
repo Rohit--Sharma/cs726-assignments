@@ -104,7 +104,8 @@ end
 
 % Helper method to evaluate the gradient of function at a given input
 function grad = gradient(M, b, epsilon, x)
-    grad = M * x - b + epsilon*normrnd(0, 1);
+    [n, ~] = size(b);
+    grad = M * x - b + epsilon*normrnd(0, 1, [n, 1]);
 end
 
 % Helper method to obtain the optimal value of the function (f(x*))

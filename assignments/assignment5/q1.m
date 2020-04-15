@@ -23,12 +23,12 @@ function q1(n, n_iter)
         f_pgd_iterate_vals(iter) = max(x_k_pgd' * Z);
         f_pgd_out_vals(iter) = max(x_k_pgd_out' * Z);
         
-        [x_k_md, x_k_md_out, A_k_md] = MirrorDescent(x_k_md, x_k_md_out, M1, iter, A_k_md);
+        [x_k_md, x_k_md_out, A_k_md] = MirrorDescent(x_k_md, x_k_md_out, Z, M1, iter, A_k_md);
         f_md_iterate_vals(iter) = max(x_k_md' * Z);
         f_md_out_vals(iter) = max(x_k_md_out' * Z);
     end
     
-    disp(f_md_out_vals);
+    % disp(f_md_out_vals);
     
     % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
@@ -62,12 +62,12 @@ function [x_k, x_k_out, A_k] = ProjectedGradientDescent(x_k_prev, x_k_out_prev, 
     x_k_out = 1/A_k * (a_k*x_k + A_k_prev*x_k_out_prev);
 end
 
-function [x_k, x_k_out, A_k] = MirrorDescent(x_k_prev, x_k_out_prev, M, k, A_k_prev)
+function [x_k, x_k_out, A_k] = MirrorDescent(x_k_prev, x_k_out_prev, Z, M, k, A_k_prev)
     a_k = 1 / (M * sqrt(k));
     A_k = A_k_prev + a_k;
     
-    v_k = a_k + 1 - log(x_k_prev);
-    x_k = exp(v_k) / sum(exp(v_k));
+    v_k = a_k * grad(x_k_prev, Z) + 1 - log(x_k_prev);
+    x_k = exp(-v_k) / sum(exp(-v_k));
     x_k_out = 1/A_k * (a_k*x_k + A_k_prev*x_k_out_prev);
 end
 
