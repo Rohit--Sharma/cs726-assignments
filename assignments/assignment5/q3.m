@@ -1,14 +1,23 @@
+% CS726 - Nonlinear Optimization
+%   HW5
+%   Author: Rohit Sharma (rohit.sharma@wisc.edu)
+%
+%Q3: Runs Nesterov's AGD, Steepest Descent and SGD
+%   on a quadratic function with M or dimensions `nxn`, 
+%   x of dimension `n` for `n_iter' iterations with a
+%   noisy gradient with noise parameter `epsilon`.
+
 function q3(n, n_iter, epsilon)
-%Q3 Summary of this function goes here
-%   Detailed explanation goes here
+%Q3: Runs Nesterov's AGD, Steepest Descent and SGD
+%   on a quadratic function with M or dimensions `nxn`, 
+%   x of dimension `n` for `n_iter' iterations with a
+%   noisy gradient with noise parameter `epsilon`.
 
     rng('default'); % For reproducibility
     
     [M, b] = initializeMatrix(n);
     
     % Get L, f(x*)
-%     evals = sort(eig(M));
-%     L = evals(n);       % We can also prove L = 4 in this case
     L = 4;
     f_optimal = minimize(M, b);
     
@@ -41,14 +50,13 @@ function q3(n, n_iter, epsilon)
         steep_desc_f = evaluate_func(M, b, sdconst_x_k);
         sdconst_opt_gap = [sdconst_opt_gap, steep_desc_f - f_optimal];
         
+        % Run SGD step
         [sgd_x_k_out, sgd_x_k, sgd_A_k] = projectedSGDWithAvg(sgd_x_k_out, sgd_x_k, M, b, L, k, sgd_A_k, epsilon);
         sgd_f = evaluate_func(M, b, sgd_x_k_out);
         sgd_opt_gap = [sgd_opt_gap, sgd_f - f_optimal];
     end
     
-    % disp(nesterov_opt_gap);
-    
-    % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
+    % Plot Optimality gap for SD, Nesterov and SGD
     figure
     plot(1:1:n_iter, sdconst_opt_gap)
     set(gca, 'YScale', 'log')
@@ -56,7 +64,7 @@ function q3(n, n_iter, epsilon)
     plot(1:1:n_iter, nesterov_opt_gap)
     hold on
     plot(1:1:n_iter, sgd_opt_gap)
-    legend('SD:constant', 'Nesterov', 'SGD')
+    legend('SD', 'Nesterov', 'SGD')
     title(strcat('Analysis of Optimization algorithms, eps=', num2str(epsilon)))
     xlabel('Num iterations')
     ylabel('Optimality gap: f(x) - f(x*)');
@@ -68,7 +76,6 @@ function x_k = steepestDescent(x_k_prev, M, b, L, epsilon)
 end
 
 % Run one step of Nesterov's acceleration for smooth f
-% TODO: Check if we need to implement Nesterov for smooth and str convex f
 function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, L, A_k_prev, epsilon)
     a_k = (1 + sqrt(1 + 4 * A_k_prev)) / 2;
     A_k = A_k_prev + a_k;
@@ -79,6 +86,7 @@ function [y_k, v_k, A_k] = nesterovsMethod(y_k_prev, v_k_prev, M, b, L, A_k_prev
     y_k = x_k - grad_x_k / L;
 end
 
+% Get the next iterates of SGD
 function [x_k_out, x_k, A_k] = projectedSGDWithAvg(x_k_out_prev, x_k_prev, M, b, L, k_prev, A_k_prev, epsilon)
     a_k = 1 / (L*sqrt(k_prev+1));
     A_k = A_k_prev + a_k;
