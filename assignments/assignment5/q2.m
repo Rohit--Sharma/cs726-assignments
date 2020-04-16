@@ -50,14 +50,14 @@ function q2(p, n, n_iter)
             x_k_fw = FrankWolfeMethod(x_k_fw, B, b, iter - 1);
             trial_f_vals_fw(iter) = evaluateFunction(B, b, x_k_fw) / evaluateFunction(B, b, x0);
             if iterate_sparsity_fw(trial) == -1 && f_vals_fw(iter, trial) <= 0.1
-                iterate_sparsity_fw(trial) = sum(x_k_fw == 0);
+                iterate_sparsity_fw(trial) = sum(x_k_fw ~= 0);
             end
 
             % Run PGD step
             x_k_pgd = ProjectedGradientDescent(B, b, L, x_k_pgd);
             trial_f_vals_pgd(iter) = evaluateFunction(B, b, x_k_pgd) / evaluateFunction(B, b, x0);
             if iterate_sparsity_pgd(trial) == -1 && f_vals_pgd(iter, trial) <= 0.1
-                iterate_sparsity_pgd(trial) = sum(x_k_pgd == 0);
+                iterate_sparsity_pgd(trial) = sum(x_k_pgd ~= 0);
             end
         end
         
