@@ -51,6 +51,10 @@ function q2(p, n, n_iter)
             f_vals_pgd(:, trial) = trial_f_vals_pgd;
             
             trial = trial + 1;
+        else
+            % Reset the sparsities back to -1 and rerun the trial
+            iterate_sparsity_fw(trial) = -1;
+            iterate_sparsity_pgd(trial) = -1;
         end
     end
     
