@@ -4,9 +4,12 @@ function q2(p, n, n_iter)
     
     n_trials = 30;
 
-    f_vals_fw = zeros(n_iter, n_trials);    
+    f_vals_fw = zeros(n_iter, n_trials);
+    iterate_sparsity_fw = zeros(n_trials, 1) - 1;
     f_vals_pgd = zeros(n_iter, n_trials);
+    iterate_sparsity_pgd = zeros(n_trials, 1) - 1;
     
+    trial = 1
     for trial = 1 : n_trials
         % rng('default') % For reproducibility
         B = normrnd(0, 1, [p, n]);
@@ -27,14 +30,29 @@ function q2(p, n, n_iter)
         for iter = 1 : n_iter
             x_k_fw = FrankWolfeMethod(x_k_fw, B, b, iter - 1);
             f_vals_fw(iter, trial) = evaluateFunction(B, b, x_k_fw) / evaluateFunction(B, b, x0);
+            if iterate_sparsity_fw(trial) == -1 && f_vals_fw(iter, trial) <= 0.1
+                iterate_sparsity_fw(trial) = sum(x_k_fw == 0);
+            end
 
             x_k_pgd = ProjectedGradientDescent(B, b, L, x_k_pgd);
             f_vals_pgd(iter, trial) = evaluateFunction(B, b, x_k_pgd) / evaluateFunction(B, b, x0);
+            if iterate_sparsity_pgd(trial) == -1 && f_vals_pgd(iter, trial) <= 0.1
+                iterate_sparsity_pgd(trial) = sum(x_k_pgd == 0);
+            end
         end
     end
     
     f_vals_fw = sum(f_vals_fw, 2) / n_trials;
     f_vals_pgd = sum(f_vals_pgd, 2) / n_trials;
+    
+    % Sanity check: if algo doesn't converge, this may happen
+    % if sum(iterate_sparsity_fw == -1) > 0 || sum(iterate_sparsity_pgd == -1) > 0
+    %     disp(iterate_sparsity_fw);
+    %     disp(iterate_sparsity_pgd);
+    % end
+    
+    disp("Frank-Wolfe sparsity: " + sum(iterate_sparsity_fw) / n_trials);
+    disp("PGD sparsity: " + sum(iterate_sparsity_pgd) / n_trials);
     
     % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
