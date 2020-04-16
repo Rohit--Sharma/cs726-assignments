@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = q3(n, n_iter, epsilon)
+function q3(n, n_iter, epsilon)
 %Q3 Summary of this function goes here
 %   Detailed explanation goes here
 

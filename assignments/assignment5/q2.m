@@ -1,32 +1,40 @@
-function [outputArg1,outputArg2] = q2(p, n, n_iter)
+function q2(p, n, n_iter)
 %Q2 Summary of this function goes here
 %   Detailed explanation goes here
+    
+    n_trials = 30;
 
-    rng('default') % For reproducibility
-    B = normrnd(0, 1, [p, n]);
-    b = ones(p, 1);
+    f_vals_fw = zeros(n_iter, n_trials);    
+    f_vals_pgd = zeros(n_iter, n_trials);
     
-    evals = sort(eig(B'*B));
-    L = evals(n);
-    
-    x0 = zeros(n, 1);
-    x0(1) = 1;
-    
-    x_k_fw = zeros(n, 1);
-    x_k_fw(1) = 1;
-    f_vals_fw = zeros(n_iter, 1);
-    
-    x_k_pgd = zeros(n, 1);
-    x_k_pgd(1) = 1;
-    f_vals_pgd = zeros(n_iter, 1);
-    
-    for iter = 1 : n_iter
-        x_k_fw = FrankWolfeMethod(x_k_fw, B, b, iter - 1);
-        f_vals_fw(iter) = evaluateFunction(B, b, x_k_fw) / evaluateFunction(B, b, x0);
+    for trial = 1 : n_trials
+        % rng('default') % For reproducibility
+        B = normrnd(0, 1, [p, n]);
+        b = ones(p, 1);
+
+        evals = sort(eig(B'*B));
+        L = evals(n);
+
+        x0 = zeros(n, 1);
+        x0(1) = 1;
+
+        x_k_fw = zeros(n, 1);
+        x_k_fw(1) = 1;
         
-        x_k_pgd = ProjectedGradientDescent(B, b, L, x_k_pgd);
-        f_vals_pgd(iter) = evaluateFunction(B, b, x_k_pgd) / evaluateFunction(B, b, x0);
+        x_k_pgd = zeros(n, 1);
+        x_k_pgd(1) = 1;
+    
+        for iter = 1 : n_iter
+            x_k_fw = FrankWolfeMethod(x_k_fw, B, b, iter - 1);
+            f_vals_fw(iter, trial) = evaluateFunction(B, b, x_k_fw) / evaluateFunction(B, b, x0);
+
+            x_k_pgd = ProjectedGradientDescent(B, b, L, x_k_pgd);
+            f_vals_pgd(iter, trial) = evaluateFunction(B, b, x_k_pgd) / evaluateFunction(B, b, x0);
+        end
     end
+    
+    f_vals_fw = sum(f_vals_fw, 2) / n_trials;
+    f_vals_pgd = sum(f_vals_pgd, 2) / n_trials;
     
     % Plot part (i): Optimality gap for SD:Const, SD:Exact and Nesterov
     figure
