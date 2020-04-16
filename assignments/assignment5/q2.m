@@ -44,17 +44,9 @@ function x_k = FrankWolfeMethod(x_k_prev, B, b, k_prev)
     [n, ~] = size(x_k_prev);
     I = eye(n);
     
-    % TODO: Implement this in closed form
-    v_k = zeros(n, 1);
-    opt_val = 500;
-    for i = 1 : n
-        e_i = I(:, i);
-        
-        if (e_i - x_k_prev)' * computeGradient(B, b, x_k_prev) < opt_val
-            opt_val = (e_i - x_k_prev)' * computeGradient(B, b, x_k_prev);
-            v_k = e_i;
-        end
-    end
+    grad_x_k_prev = computeGradient(B, b, x_k_prev);
+    [~, i_k_prev] = max(abs(grad_x_k_prev));
+    v_k = -sign(grad_x_k_prev(i_k_prev)) * I(:, i_k_prev);
     
     A_k_prev = (k_prev^2 + 5*k_prev + 6) / 4;
     a_k = (k_prev + 1) / 2;
